@@ -54,6 +54,14 @@ class ApiService {
     await prefs.remove('token');
   }
 
+  Future<Map<String, dynamic>?> me() async {
+    if (!isLoggedIn) return null;
+    final res = await http.get(_uri('/me'), headers: _headers);
+    if (res.statusCode != 200) return null;
+    final body = jsonDecode(res.body) as Map<String, dynamic>;
+    return body['user'] as Map<String, dynamic>?;
+  }
+
   Future<List<Category>> categories() async {
     final res = await http.get(_uri('/categories'), headers: _headers);
     final list = jsonDecode(res.body) as List;
@@ -74,5 +82,24 @@ class ApiService {
   Future<ListingDetail> listing(String slug) async {
     final res = await http.get(_uri('/listings/$slug'), headers: _headers);
     return ListingDetail.fromJson(jsonDecode(res.body));
+  }
+
+  Future<List<ListingCard>> wishlist() async {
+    final res = await http.get(_uri('/wishlist'), headers: _headers);
+    final list = jsonDecode(res.body) as List;
+    return list.map((e) => ListingCard.fromJson(e)).toList();
+  }
+
+  /// Returns the new saved state (true = now saved).
+  Future<bool> toggleWishlist(int listingId) async {
+    final res = await http.post(_uri('/listings/$listingId/wishlist'), headers: _headers);
+    final body = jsonDecode(res.body) as Map<String, dynamic>;
+    return body['saved'] == true;
+  }
+
+  Future<List<Trip>> myTrips() async {
+    final res = await http.get(_uri('/bookings/mine'), headers: _headers);
+    final list = jsonDecode(res.body) as List;
+    return list.map((e) => Trip.fromJson(e)).toList();
   }
 }

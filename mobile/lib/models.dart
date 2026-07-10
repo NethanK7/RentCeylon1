@@ -11,6 +11,7 @@ class ListingCard {
   final String? photo;
   final List<String> earnedBadges;
   final List<String> promotedBadges;
+  final bool isWishlisted;
 
   ListingCard.fromJson(Map<String, dynamic> j)
       : id = j['id'],
@@ -24,7 +25,8 @@ class ListingCard {
         category = j['category'] ?? '',
         photo = j['photo'],
         earnedBadges = List<String>.from(j['earned_badges'] ?? []),
-        promotedBadges = List<String>.from(j['promoted_badges'] ?? []);
+        promotedBadges = List<String>.from(j['promoted_badges'] ?? []),
+        isWishlisted = j['is_wishlisted'] ?? false;
 }
 
 class ListingDetail {
@@ -43,6 +45,7 @@ class ListingDetail {
   final String listerName;
   final List<String> earnedBadges;
   final List<String> promotedBadges;
+  final bool isWishlisted;
 
   ListingDetail.fromJson(Map<String, dynamic> j)
       : id = j['id'],
@@ -59,13 +62,43 @@ class ListingDetail {
         attributes = List<Map<String, dynamic>>.from(j['attributes'] ?? []),
         listerName = (j['lister']?['name']) ?? '',
         earnedBadges = List<String>.from(j['earned_badges'] ?? []),
-        promotedBadges = List<String>.from(j['promoted_badges'] ?? []);
+        promotedBadges = List<String>.from(j['promoted_badges'] ?? []),
+        isWishlisted = j['is_wishlisted'] ?? false;
 }
 
 class Category {
   final String name;
   final String slug;
+  final String? icon;
   Category.fromJson(Map<String, dynamic> j)
       : name = j['name'],
-        slug = j['slug'];
+        slug = j['slug'],
+        icon = j['icon'];
+}
+
+class Trip {
+  final int id;
+  final String reference;
+  final String status;
+  final String statusLabel;
+  final String startDate;
+  final String endDate;
+  final double total;
+  final String currency;
+  final String listingTitle;
+  final String? listingPhoto;
+  final String listerName;
+
+  Trip.fromJson(Map<String, dynamic> j)
+      : id = j['id'],
+        reference = j['reference'],
+        status = j['status'],
+        statusLabel = j['status_label'] ?? j['status'],
+        startDate = j['start_date'],
+        endDate = j['end_date'],
+        total = (j['total'] as num).toDouble(),
+        currency = j['currency'] ?? 'LKR',
+        listingTitle = j['listing']?['title'] ?? '',
+        listingPhoto = j['listing']?['photo'],
+        listerName = j['lister'] ?? '';
 }

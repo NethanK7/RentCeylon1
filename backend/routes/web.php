@@ -9,6 +9,7 @@ use App\Http\Controllers\Lister\ListingManageController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Renter\DashboardController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -48,6 +49,10 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 
     Route::get('/rentals', [DashboardController::class, 'index'])->name('renter.dashboard');
+
+    // Wishlist (Airbnb-style save/heart)
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/listings/{listing}/wishlist', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
     // Lister flow (Pages 13–17)
     Route::middleware('role:lister')->prefix('lister')->name('lister.')->group(function () {

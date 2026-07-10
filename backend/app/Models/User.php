@@ -72,4 +72,5 @@ class User extends Authenticatable
     public function referralsMade(): HasMany { return $this->hasMany(Referral::class, 'referrer_id'); }
     public function managedProperties(): HasMany { return $this->hasMany(ManagedProperty::class, 'owner_id'); }
     public function assignedProperties(): HasMany { return $this->hasMany(ManagedProperty::class, 'manager_id'); }
+    public function wishlist(): HasMany { return $this->hasMany(Wishlist::class); }
 }

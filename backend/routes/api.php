@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BookingApiController;
 use App\Http\Controllers\Api\CatalogController;
+use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,4 +23,9 @@ Route::get('/listings/{listing:slug}', [CatalogController::class, 'listing']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::post('/listings/{listing}/wishlist', [WishlistController::class, 'toggle']);
+
+    Route::get('/bookings/mine', [BookingApiController::class, 'mine']);
 });

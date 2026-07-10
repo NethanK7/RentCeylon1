@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../api.dart';
 import '../models.dart';
-
-const _brand = Color(0xFFFF385C);
-const _ceylon = Color(0xFF0D9488);
+import '../theme.dart';
+import '../wishlist_store.dart';
 
 class ListingScreen extends StatefulWidget {
   final String slug;
@@ -25,11 +24,14 @@ class _ListingScreenState extends State<ListingScreen> {
   Future<void> _load() async {
     try {
       final l = await ApiService.instance.listing(widget.slug);
+      WishlistStore.instance.seedIfUnloaded(l.id, l.isWishlisted);
+      if (!mounted) return;
       setState(() {
         _listing = l;
         _loading = false;
       });
     } catch (_) {
+      if (!mounted) return;
       setState(() => _loading = false);
     }
   }
@@ -41,19 +43,45 @@ class _ListingScreenState extends State<ListingScreen> {
   Widget build(BuildContext context) {
     final l = _listing;
     return Scaffold(
-      appBar: AppBar(title: Text(l?.title ?? 'Listing')),
-      bottomNavigationBar: l == null
-          ? null
-          : _bookingBar(l),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.white,
+        title: const SizedBox.shrink(),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.black45, Colors.transparent]),
+          ),
+        ),
+        actions: l == null ? null : [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ListenableBuilder(
+              listenable: WishlistStore.instance,
+              builder: (context, _) => IconButton(
+                icon: Icon(
+                  WishlistStore.instance.isSaved(l.id) ? Icons.favorite : Icons.favorite_border,
+                  color: WishlistStore.instance.isSaved(l.id) ? AppColors.rose600 : Colors.white,
+                  shadows: const [Shadow(color: Colors.black45, blurRadius: 4)],
+                ),
+                onPressed: () => WishlistStore.instance.toggle(l.id),
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: l == null ? null : _bookingBar(l),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : l == null
               ? const Center(child: Text('Could not load listing.'))
               : ListView(
+                  padding: EdgeInsets.zero,
                   children: [
                     if (l.photos.isNotEmpty)
                       SizedBox(
-                        height: 260,
+                        height: 300,
                         child: PageView(
                           children: l.photos
                               .map((p) => Image.network(p, fit: BoxFit.cover))
@@ -68,8 +96,9 @@ class _ListingScreenState extends State<ListingScreen> {
                           Text(l.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
                           Row(children: [
-                            const Icon(Icons.location_on, size: 16),
-                            Text('${l.city} · ${l.category}'),
+                            const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                            const SizedBox(width: 2),
+                            Text('${l.city} · ${l.category}', style: TextStyle(color: Colors.grey.shade700)),
                             const Spacer(),
                             if (l.ratingCount > 0) ...[
                               const Icon(Icons.star, size: 16),
@@ -79,11 +108,12 @@ class _ListingScreenState extends State<ListingScreen> {
                           const SizedBox(height: 12),
 
                           // Badge zones kept separate (Constraint 01)
-                          Wrap(spacing: 8, runSpacing: 8, children: [
-                            ...l.earnedBadges.map((b) => _badge(b, earned: true)),
-                            ...l.promotedBadges.map((b) => _badge(b, earned: false)),
-                          ]),
-                          const SizedBox(height: 16),
+                          if (l.earnedBadges.isNotEmpty || l.promotedBadges.isNotEmpty)
+                            Wrap(spacing: 8, runSpacing: 8, children: [
+                              ...l.earnedBadges.map((b) => _badge(b, earned: true)),
+                              ...l.promotedBadges.map((b) => _badge(b, earned: false)),
+                            ]),
+                          if (l.earnedBadges.isNotEmpty || l.promotedBadges.isNotEmpty) const SizedBox(height: 16),
 
                           if (l.attributes.isNotEmpty) ...[
                             const Text('Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -92,7 +122,11 @@ class _ListingScreenState extends State<ListingScreen> {
                               spacing: 8, runSpacing: 8,
                               children: l.attributes.map((a) {
                                 final unit = a['unit'] != null ? ' ${a['unit']}' : '';
-                                return Chip(label: Text('${a['label']}: ${a['value']}$unit'));
+                                return Chip(
+                                  label: Text('${a['label']}: ${a['value']}$unit'),
+                                  backgroundColor: const Color(0xFFF3F4F6),
+                                  side: BorderSide.none,
+                                );
                               }).toList(),
                             ),
                             const SizedBox(height: 16),
@@ -100,10 +134,16 @@ class _ListingScreenState extends State<ListingScreen> {
 
                           const Text('About this item', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           const SizedBox(height: 4),
-                          Text(l.description),
+                          Text(l.description, style: const TextStyle(height: 1.4)),
                           const SizedBox(height: 16),
-                          Text('Listed by ${l.listerName}', style: TextStyle(color: Colors.grey.shade600)),
-                          const SizedBox(height: 80),
+                          Row(
+                            children: [
+                              CircleAvatar(radius: 18, backgroundColor: AppColors.navy800, child: Text(l.listerName.isNotEmpty ? l.listerName[0] : '?', style: const TextStyle(color: Colors.white))),
+                              const SizedBox(width: 10),
+                              Text('Listed by ${l.listerName}', style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w500)),
+                            ],
+                          ),
+                          const SizedBox(height: 90),
                         ],
                       ),
                     ),
@@ -116,15 +156,15 @@ class _ListingScreenState extends State<ListingScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: earned ? Colors.white : Colors.amber,
+        color: earned ? Colors.white : AppColors.gold300,
         borderRadius: BorderRadius.circular(20),
-        border: earned ? Border.all(color: _ceylon) : null,
+        border: earned ? Border.all(color: AppColors.ceylon600) : null,
       ),
       child: Text(name,
           style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: earned ? _ceylon : Colors.black87)),
+              color: earned ? AppColors.ceylon600 : const Color(0xFF4A370D))),
     );
   }
 
@@ -152,7 +192,6 @@ class _ListingScreenState extends State<ListingScreen> {
               ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: _brand, foregroundColor: Colors.white),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Checkout continues on web — deposit held in escrow.')),

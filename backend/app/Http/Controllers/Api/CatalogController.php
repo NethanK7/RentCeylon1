@@ -56,11 +56,13 @@ class CatalogController extends Controller
             }
         }
 
+        $wishlisted = $this->wishlistedIds($request);
+
         return $query->orderByDesc('rating_avg')->paginate(20)
-            ->through(fn (Listing $l) => $this->card($l));
+            ->through(fn (Listing $l) => $this->card($l, $wishlisted));
     }
 
-    public function listing(Listing $listing)
+    public function listing(Request $request, Listing $listing)
     {
         abort_unless($listing->status->value === 'active', 404);
         $listing->load(['photos', 'category', 'lister:id,name,rating_avg,rating_count', 'attributeValues.attribute', 'badges.badge']);
@@ -85,10 +87,18 @@ class CatalogController extends Controller
             'lister' => ['name' => $listing->lister->name, 'rating_avg' => $listing->lister->rating_avg],
             'earned_badges' => $listing->badges->where('class', 'earned')->pluck('badge.name')->values(),
             'promoted_badges' => $listing->badges->where('class', 'paid')->pluck('badge.name')->values(),
+            'is_wishlisted' => $this->wishlistedIds($request)->contains($listing->id),
         ];
     }
 
-    private function card(Listing $l): array
+    /** Optionally-authenticated: resolves the bearer token's user without forcing a 401. */
+    private function wishlistedIds(Request $request)
+    {
+        $user = $request->user('sanctum');
+        return $user ? $user->wishlist()->pluck('listing_id') : collect();
+    }
+
+    private function card(Listing $l, $wishlisted = null): array
     {
         return [
             'id' => $l->id, 'title' => $l->title, 'slug' => $l->slug,
@@ -98,6 +108,7 @@ class CatalogController extends Controller
             'photo' => $l->photos->first() ? $this->url($l->photos->first()->path) : null,
             'earned_badges' => $l->badges->where('class', 'earned')->pluck('badge.name')->values(),
             'promoted_badges' => $l->badges->where('class', 'paid')->pluck('badge.name')->values(),
+            'is_wishlisted' => $wishlisted ? $wishlisted->contains($l->id) : false,
         ];
     }
 

@@ -1,9 +1,10 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
-import { MapPin, Share2, ShieldCheck, Star, Info } from 'lucide-react';
+import { MapPin, Share2, ShieldCheck, Star, ChevronLeft } from 'lucide-react';
 import SiteLayout from '@/Layouts/SiteLayout';
 import Stars from '@/Components/site/Stars';
 import { EarnedZone, PromotedZone } from '@/Components/site/Badges';
+import WishlistHeart from '@/Components/site/WishlistHeart';
 import { money } from '@/lib/format';
 import { BadgeChip, PageProps } from '@/types/app';
 
@@ -56,6 +57,12 @@ export default function Show({ listing }: { listing: Listing }) {
     return (
         <SiteLayout>
             <Head title={listing.title} />
+
+            {/* Mobile back + save bar (Airbnb pattern: floats over the gallery) */}
+            <div className="sm:hidden">
+                <MobileGallery listing={listing} />
+            </div>
+
             <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
                 {/* Title row */}
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -67,19 +74,23 @@ export default function Show({ listing }: { listing: Listing }) {
                             <span className="capitalize text-gray-500">{listing.condition.replace('_', ' ')} condition</span>
                         </div>
                     </div>
-                    <button onClick={share} className="btn-outline"><Share2 className="h-4 w-4" /> Share</button>
+                    <button onClick={share} className="btn-outline hidden sm:inline-flex"><Share2 className="h-4 w-4" /> Share</button>
+                    <button onClick={share} aria-label="Share" className="rounded-full p-2 text-gray-700 hover:bg-gray-100 sm:hidden"><Share2 className="h-5 w-5" /></button>
                 </div>
 
-                {/* Gallery */}
-                <div className="grid gap-2 overflow-hidden rounded-2xl sm:grid-cols-4 sm:grid-rows-2" style={{ maxHeight: 460 }}>
+                {/* Desktop gallery grid */}
+                <div className="relative hidden gap-2 overflow-hidden rounded-2xl sm:grid sm:grid-cols-4 sm:grid-rows-2" style={{ maxHeight: 460 }}>
                     <div className="sm:col-span-2 sm:row-span-2">
                         <img src={listing.photos[active]?.url} alt={listing.title} className="h-full w-full object-cover" style={{ minHeight: 300 }} />
                     </div>
                     {listing.photos.slice(0, 4).map((p, i) => (
-                        <button key={i} onClick={() => setActive(i)} className="hidden sm:block">
+                        <button key={i} onClick={() => setActive(i)}>
                             <img src={p.url} alt="" className={`h-full w-full object-cover ${active === i ? 'ring-2 ring-brand-500' : ''}`} />
                         </button>
                     ))}
+                    <div className="absolute right-3 top-3">
+                        <WishlistHeart listingId={listing.id} />
+                    </div>
                 </div>
 
                 <div className="mt-8 grid gap-10 lg:grid-cols-3">
@@ -201,6 +212,39 @@ function Row({ label, value, bold, muted }: { label: string; value: string; bold
     return (
         <div className={`flex justify-between ${bold ? 'font-bold text-gray-900' : muted ? 'text-gray-500' : 'text-gray-700'}`}>
             <span>{label}</span><span>{value}</span>
+        </div>
+    );
+}
+
+/** Mobile-only swipeable photo gallery — Airbnb's listing-detail header pattern. */
+function MobileGallery({ listing }: { listing: { id: number; title: string; photos: { url: string }[] } }) {
+    const [idx, setIdx] = useState(0);
+
+    const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const el = e.currentTarget;
+        setIdx(Math.round(el.scrollLeft / el.clientWidth));
+    };
+
+    return (
+        <div className="relative">
+            <div onScroll={onScroll} className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {listing.photos.map((p, i) => (
+                    <img key={i} src={p.url} alt={listing.title} className="aspect-[4/3] w-full flex-shrink-0 snap-center object-cover" />
+                ))}
+            </div>
+
+            <button onClick={() => history.back()} className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow">
+                <ChevronLeft className="h-5 w-5" />
+            </button>
+            <div className="absolute right-3 top-3">
+                <WishlistHeart listingId={listing.id} />
+            </div>
+
+            {listing.photos.length > 1 && (
+                <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
+                    {idx + 1} / {listing.photos.length}
+                </div>
+            )}
         </div>
     );
 }

@@ -40,6 +40,7 @@ class Listing extends Model
     public function bookings(): HasMany { return $this->hasMany(Booking::class); }
     public function reviews() { return $this->hasManyThrough(Review::class, Booking::class); }
     public function badges(): HasMany { return $this->hasMany(ListingBadge::class); }
+    public function wishlistedBy(): HasMany { return $this->hasMany(Wishlist::class); }
 
     // Only ID-verified listers' active listings are publicly visible (Constraint 11).
     public function scopePublic($q)

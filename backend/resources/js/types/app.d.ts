@@ -68,5 +68,6 @@ export interface Paginated<T> {
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
     auth: { user: AuthUser | null };
     nav: { categories: NavCategory[] };
+    wishlist: { ids: number[] };
     flash: { success: string | null; error: string | null };
 };

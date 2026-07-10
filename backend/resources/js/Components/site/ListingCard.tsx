@@ -5,6 +5,7 @@ import { ListingCardData } from '@/types/app';
 import { money } from '@/lib/format';
 import Stars from './Stars';
 import { EarnedBadge, PromotedBadge } from './Badges';
+import WishlistHeart from './WishlistHeart';
 
 export default function ListingCard({ listing }: { listing: ListingCardData }) {
     const photos = listing.photos?.length ? listing.photos : listing.photo ? [listing.photo] : [];
@@ -36,8 +37,11 @@ export default function ListingCard({ listing }: { listing: ListingCardData }) {
                         <PromotedBadge badge={listing.promotedBadges[0]} />
                     </div>
                 )}
+                <div className="absolute right-2 top-2">
+                    <WishlistHeart listingId={listing.id} />
+                </div>
                 {listing.earnedBadges?.[0] && (
-                    <div className="absolute right-3 top-3">
+                    <div className="absolute left-3 bottom-3">
                         <EarnedBadge badge={listing.earnedBadges[0]} />
                     </div>
                 )}

@@ -52,6 +52,14 @@ class HandleInertiaRequests extends Middleware
                     ]),
             ],
 
+            // Current user's saved-listing ids, so any card anywhere can render
+            // the correct filled/outline heart without per-page plumbing.
+            'wishlist' => [
+                'ids' => fn () => $user
+                    ? $user->wishlist()->pluck('listing_id')
+                    : [],
+            ],
+
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

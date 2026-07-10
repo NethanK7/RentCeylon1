@@ -4,6 +4,7 @@ import { Search, Menu, Globe, X, CheckCircle2, AlertCircle } from 'lucide-react'
 import { PageProps } from '@/types/app';
 import Icon from '@/Components/site/Icon';
 import Logo from '@/Components/site/Logo';
+import BottomNav from '@/Components/site/BottomNav';
 
 function UserMenu() {
     const { auth } = usePage<PageProps>().props;
@@ -69,21 +70,21 @@ function MenuLink({ href, children }: PropsWithChildren<{ href: string }>) {
     );
 }
 
-function SearchPill() {
+function SearchPill({ fullWidth = false }: { fullWidth?: boolean }) {
     const [q, setQ] = useState('');
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         router.get('/browse', q ? { q } : {});
     };
     return (
-        <form onSubmit={submit} className="flex items-center rounded-full border border-gray-300 py-1.5 pl-5 pr-1.5 shadow-sm transition hover:shadow-md">
+        <form onSubmit={submit} className={`flex items-center rounded-full border border-gray-300 py-1.5 pl-5 pr-1.5 shadow-sm transition hover:shadow-md ${fullWidth ? 'w-full' : ''}`}>
             <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search anything to rent…"
-                className="w-40 border-0 p-0 text-sm focus:ring-0 sm:w-56"
+                className={`border-0 p-0 text-sm focus:ring-0 ${fullWidth ? 'flex-1' : 'w-40 sm:w-56'}`}
             />
-            <button type="submit" className="rounded-full bg-gold-500 p-2 text-white hover:bg-gold-600" aria-label="Search">
+            <button type="submit" className="flex-shrink-0 rounded-full bg-gold-500 p-2 text-white hover:bg-gold-600" aria-label="Search">
                 <Search className="h-4 w-4" />
             </button>
         </form>
@@ -117,7 +118,7 @@ function Flash() {
     if (!show || (!flash.success && !flash.error)) return null;
     const ok = !!flash.success;
     return (
-        <div className={`fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-xl px-4 py-3 text-sm text-white shadow-hover ${ok ? 'bg-emerald-600' : 'bg-rose-600'}`}>
+        <div className={`fixed bottom-20 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-xl px-4 py-3 text-sm text-white shadow-hover sm:bottom-5 ${ok ? 'bg-emerald-600' : 'bg-rose-600'}`}>
             {ok ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
             <span>{flash.success ?? flash.error}</span>
             <button onClick={() => setShow(false)}><X className="h-4 w-4" /></button>
@@ -163,7 +164,7 @@ export default function SiteLayout({ children, showCategories = false }: PropsWi
         <div className="flex min-h-screen flex-col">
             <header className="sticky top-0 z-30 bg-white/95 shadow-nav backdrop-blur">
                 <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-                    <Logo />
+                    <Logo markClassName="h-8 w-8 sm:h-9 sm:w-9" wordmarkClassName="text-lg sm:text-xl" />
                     <div className="hidden md:block"><SearchPill /></div>
                     <div className="flex items-center gap-2">
                         {!auth.user && (
@@ -175,12 +176,20 @@ export default function SiteLayout({ children, showCategories = false }: PropsWi
                         <UserMenu />
                     </div>
                 </div>
+
+                {/* Mobile: full-width "Start your search" row, own line under the logo */}
+                <div className="px-4 pb-3 md:hidden">
+                    <SearchPill fullWidth />
+                </div>
+
                 {showCategories && <CategoryBar />}
             </header>
 
-            <main className="flex-1">{children}</main>
+            {/* pb reserves room for the fixed mobile bottom tab bar */}
+            <main className="flex-1 pb-16 sm:pb-0">{children}</main>
             <Footer />
             <Flash />
+            <BottomNav />
         </div>
     );
 }
