@@ -1,10 +1,32 @@
 import { Head, Link } from '@inertiajs/react';
-import { ShieldCheck, HandCoins, FileCheck2, Globe2 } from 'lucide-react';
+import { ShieldCheck, HandCoins, FileCheck2, Globe2, ArrowRight } from 'lucide-react';
 import SiteLayout from '@/Layouts/SiteLayout';
-import ScrollRow from '@/Components/site/ScrollRow';
+import ListingCard from '@/Components/site/ListingCard';
 import { ListingCardData } from '@/types/app';
 
 interface CityRow { title: string; listings: ListingCardData[]; }
+
+function ListingGrid({ listings }: { listings: ListingCardData[] }) {
+    if (!listings.length) return null;
+    return (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+            {listings.map((l) => <ListingCard key={l.id} listing={l} />)}
+        </div>
+    );
+}
+
+function SectionHeading({ title, href }: { title: string; href?: string }) {
+    return (
+        <div className="mb-5 flex items-center justify-between">
+            <h2 className="font-display text-xl font-bold text-gray-900 sm:text-2xl">{title}</h2>
+            {href && (
+                <Link href={href} className="flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:underline">
+                    Show all <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+            )}
+        </div>
+    );
+}
 
 export default function Home({ featured, cityRows, stats }: {
     featured: ListingCardData[];
@@ -15,12 +37,24 @@ export default function Home({ featured, cityRows, stats }: {
         <SiteLayout showCategories>
             <Head title="Rent anything in Sri Lanka" />
 
-            {/* Airbnb-style: header + category rail, then straight into rows — no big hero block */}
-            <div className="pt-2">
-                <ScrollRow title="Featured near you" listings={featured} seeAllHref="/browse" />
-                {cityRows.map((row) => (
-                    <ScrollRow key={row.title} title={row.title} listings={row.listings} seeAllHref="/browse" />
-                ))}
+            <div className="px-4 pt-6 sm:px-6 lg:px-8">
+                {featured.length > 0 && (
+                    <section className="mb-12">
+                        <SectionHeading title="Featured near you" href="/browse" />
+                        <ListingGrid listings={featured} />
+                    </section>
+                )}
+                {cityRows.map((row) =>
+                    row.listings.length > 0 ? (
+                        <section key={row.title} className="mb-12">
+                            <SectionHeading
+                                title={row.title}
+                                href={`/browse?city=${encodeURIComponent(row.title.replace('Popular rentals in ', ''))}`}
+                            />
+                            <ListingGrid listings={row.listings} />
+                        </section>
+                    ) : null
+                )}
             </div>
 
             {/* How it works */}
