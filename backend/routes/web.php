@@ -1,5 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\BookingOverviewController;
+use App\Http\Controllers\BookingQrController;
+use App\Http\Controllers\VerificationSubmitController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ListingModerationController;
+use App\Http\Controllers\Admin\ReviewModerationController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\VerificationController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ConditionPhotoController;
 use App\Http\Controllers\HomeController;
@@ -32,10 +40,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
     Route::post('/bookings/{booking}/photos', [ConditionPhotoController::class, 'store'])->name('bookings.photos.store');
 
-    // ID verification (Page 08) — stub screen for now, full flow next.
+    // ID verification
     Route::get('/verify-id', fn () => Inertia::render('Verification/Id', [
         'status' => request()->user()->id_verification_status->value,
     ]))->name('verification.id.show');
+    Route::post('/verify-id', [VerificationSubmitController::class, 'store'])->name('verification.id.submit');
+
+    // Booking QR
+    Route::get('/bookings/{booking}/qr', [BookingQrController::class, 'show'])->name('bookings.qr');
 
     // Role dashboards
     Route::get('/dashboard', function () {
@@ -70,7 +82,31 @@ Route::middleware('auth')->group(function () {
         Route::post('/bookings/{booking}/confirm-return', [BookingManageController::class, 'confirmReturn'])->name('bookings.confirm-return');
     });
 
-    Route::get('/admin', fn () => Inertia::render('Admin/Dashboard'))->middleware('role:admin')->name('admin.dashboard');
+    // Admin panel
+    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
+        Route::post('/users/{user}/suspend', [AdminUserController::class, 'suspend'])->name('users.suspend');
+        Route::post('/users/{user}/unsuspend', [AdminUserController::class, 'unsuspend'])->name('users.unsuspend');
+        Route::post('/users/{user}/role', [AdminUserController::class, 'changeRole'])->name('users.role');
+
+        Route::get('/verifications', [VerificationController::class, 'index'])->name('verifications.index');
+        Route::post('/verifications/{verification}/approve', [VerificationController::class, 'approve'])->name('verifications.approve');
+        Route::post('/verifications/{verification}/reject', [VerificationController::class, 'reject'])->name('verifications.reject');
+
+        Route::get('/listings', [ListingModerationController::class, 'index'])->name('listings.index');
+        Route::post('/listings/{listing}/remove', [ListingModerationController::class, 'remove'])->name('listings.remove');
+        Route::post('/listings/{listing}/restore', [ListingModerationController::class, 'restore'])->name('listings.restore');
+
+        Route::get('/bookings', [BookingOverviewController::class, 'index'])->name('bookings.index');
+
+        Route::get('/reviews', [ReviewModerationController::class, 'index'])->name('reviews.index');
+        Route::post('/reviews/{review}/hide', [ReviewModerationController::class, 'hide'])->name('reviews.hide');
+        Route::post('/reviews/{review}/keep', [ReviewModerationController::class, 'keep'])->name('reviews.keep');
+    });
+
     Route::get('/manager', fn () => Inertia::render('Manager/Dashboard'))->middleware('role:manager')->name('manager.dashboard');
 
     // Profile (Breeze)
@@ -78,5 +114,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// QR scan + email image — signed URLs, no auth required
+Route::get('/bookings/{booking}/scan',       [BookingQrController::class, 'scan'])->name('bookings.scan');
+Route::get('/bookings/{booking}/qr-email',   [BookingQrController::class, 'emailImage'])->name('bookings.qr.email');
 
 require __DIR__.'/auth.php';

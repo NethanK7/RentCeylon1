@@ -88,6 +88,22 @@ export default function Show({ booking }: { booking: Booking }) {
                         <GateItem done={booking.has_return_photos} icon={Camera} label="Return condition photos" />
                     </div>
 
+                    {/* QR code — shown to renter for confirmed/active bookings */}
+                    {booking.is_renter && ['confirmed', 'active'].includes(booking.status) && (
+                        <div className="border-t border-gray-200 p-5">
+                            <p className="mb-3 text-sm font-semibold text-gray-900">Your pickup QR code</p>
+                            <p className="mb-4 text-xs text-gray-500">Show this to the lister when you arrive. They'll scan it to verify your booking.</p>
+                            <div className="flex justify-center">
+                                <img
+                                    src={`/bookings/${booking.id}/qr`}
+                                    alt="Booking QR code"
+                                    className="h-48 w-48 rounded-xl border border-gray-200 p-2"
+                                />
+                            </div>
+                            <p className="mt-3 text-center font-mono text-sm font-bold tracking-widest text-gray-700">{booking.reference}</p>
+                        </div>
+                    )}
+
                     {/* Renter actions: upload pickup / return photos */}
                     {booking.is_renter && booking.status === 'confirmed' && (
                         <UploadSection

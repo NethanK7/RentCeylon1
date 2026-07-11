@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Enums\BookingStatus;
 use App\Enums\DepositStatus;
+use App\Mail\BookingCancelledMail;
+use App\Mail\BookingConfirmedMail;
+use App\Mail\NewBookingMail;
 use App\Models\Booking;
 use App\Models\Cancellation;
 use App\Models\Deposit;
@@ -14,6 +17,7 @@ use App\Models\User;
 use App\Support\PlatformFee;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -164,6 +168,11 @@ class BookingService
                 'generated_at' => now(),
             ]);
 
+            // Send emails to both parties.
+            $booking->load('listing', 'renter', 'lister');
+            Mail::to($booking->renter->email)->queue(new BookingConfirmedMail($booking, 'renter'));
+            Mail::to($booking->lister->email)->queue(new NewBookingMail($booking));
+
             return $booking;
         });
     }
@@ -251,6 +260,11 @@ class BookingService
 
             // Free up the dates.
             $booking->listing->unavailabilities()->where('booking_id', $booking->id)->delete();
+
+            // Notify both parties.
+            $booking->load('listing', 'renter', 'lister', 'cancellation');
+            Mail::to($booking->renter->email)->queue(new BookingCancelledMail($booking, 'renter'));
+            Mail::to($booking->lister->email)->queue(new BookingCancelledMail($booking, 'lister'));
 
             return $cancellation;
         });
