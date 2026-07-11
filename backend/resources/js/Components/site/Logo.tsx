@@ -24,22 +24,22 @@ export function LogoMark({ className = 'h-9 w-9' }: { className?: string }) {
     );
 }
 
-export function LogoWordmark({ className = 'text-xl' }: { className?: string }) {
+export function LogoWordmark({ className = 'text-xl', dark = false }: { className?: string; dark?: boolean }) {
     return (
         <span className={`font-serif font-bold tracking-tight ${className}`}>
-            <span style={{ color: '#123063' }}>Rent</span>{' '}
+            <span style={{ color: dark ? '#ffffff' : '#123063' }}>Rent</span>{' '}
             <span style={{ color: '#C6900F' }}>Ceylon</span>
         </span>
     );
 }
 
-export default function Logo({ markClassName = 'h-9 w-9', wordmarkClassName = 'text-xl', asLink = true }: {
-    markClassName?: string; wordmarkClassName?: string; asLink?: boolean;
+export default function Logo({ markClassName = 'h-9 w-9', wordmarkClassName = 'text-xl', asLink = true, dark = false }: {
+    markClassName?: string; wordmarkClassName?: string; asLink?: boolean; dark?: boolean;
 }) {
     const inner = (
         <span className="flex items-center gap-2">
             <LogoMark className={markClassName} />
-            <LogoWordmark className={wordmarkClassName} />
+            <LogoWordmark className={wordmarkClassName} dark={dark} />
         </span>
     );
     return asLink ? <Link href="/">{inner}</Link> : inner;

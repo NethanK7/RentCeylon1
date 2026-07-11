@@ -128,17 +128,17 @@ function Flash() {
 
 function Footer() {
     return (
-        <footer className="mt-16 border-t border-gray-200 bg-gray-50">
+        <footer className="mt-16" style={{ backgroundColor: '#123063' }}>
             <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
                 <div>
-                    <Logo />
-                    <p className="mt-3 text-sm text-gray-500">Rent anything and everything in Sri Lanka. Deposit-protected, verified listers.</p>
+                    <Logo asLink={false} dark />
+                    <p className="mt-3 text-sm" style={{ color: '#93b8e0' }}>Rent anything and everything in Sri Lanka. Deposit-protected, verified listers.</p>
                 </div>
                 <FooterCol title="Discover" links={[['Browse all', '/browse'], ['Vehicles', '/browse?category=vehicles'], ['Electronics', '/browse?category=electronics'], ['Event gear', '/browse?category=events']]} />
                 <FooterCol title="RentCeylon" links={[['How it works', '/trust'], ['Pricing for listers', '/pricing'], ['Property management', '/property-management'], ['Trust & safety', '/trust']]} />
                 <FooterCol title="Account" links={[['Log in', '/login'], ['Sign up', '/register'], ['List your item', '/register?role=lister']]} />
             </div>
-            <div className="border-t border-gray-200 py-4 text-center text-xs text-gray-500">
+            <div className="py-4 text-center text-xs" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', color: '#6b9ec8' }}>
                 © {new Date().getFullYear()} RentCeylon · PayHere · iPay · Colombo, Sri Lanka
             </div>
         </footer>
@@ -148,10 +148,10 @@ function Footer() {
 function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
     return (
         <div>
-            <h4 className="mb-3 text-sm font-semibold text-gray-900">{title}</h4>
-            <ul className="space-y-2 text-sm text-gray-500">
+            <h4 className="mb-3 text-sm font-semibold text-white">{title}</h4>
+            <ul className="space-y-2 text-sm" style={{ color: '#93b8e0' }}>
                 {links.map(([label, href]) => (
-                    <li key={href}><Link href={href} className="hover:text-gray-900 hover:underline">{label}</Link></li>
+                    <li key={href}><Link href={href} className="transition hover:text-white">{label}</Link></li>
                 ))}
             </ul>
         </div>
