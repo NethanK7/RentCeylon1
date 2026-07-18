@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingApiController;
+use App\Http\Controllers\Api\GoogleAuthController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\MessageApiController;
 use App\Http\Controllers\Api\ProfileApiController;
@@ -15,8 +16,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ── Public ─────────────────────────────────────────────────────────────────
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+Route::post('/register',      [AuthController::class, 'register']);
+Route::post('/login',         [AuthController::class, 'login']);
+Route::post('/auth/google',   [GoogleAuthController::class, 'login']);
 
 Route::get('/categories',                      [CatalogController::class, 'categories']);
 Route::get('/listings',                        [CatalogController::class, 'listings']);
