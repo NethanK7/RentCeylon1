@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\BookingOverviewController;
 use App\Http\Controllers\BookingQrController;
 use App\Http\Controllers\VerificationSubmitController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Manager\DashboardController as ManagerDashboardController;
 use App\Http\Controllers\Admin\ListingModerationController;
 use App\Http\Controllers\Admin\ReviewModerationController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -107,7 +108,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/reviews/{review}/keep', [ReviewModerationController::class, 'keep'])->name('reviews.keep');
     });
 
-    Route::get('/manager', fn () => Inertia::render('Manager/Dashboard'))->middleware('role:manager')->name('manager.dashboard');
+    Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(function () {
+        Route::get('/', [ManagerDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/properties/{property}/inspections', [ManagerDashboardController::class, 'scheduleInspection'])->name('inspections.store');
+        Route::post('/rent-collections/{collection}/collect', [ManagerDashboardController::class, 'markCollected'])->name('collections.collect');
+    });
 
     // Profile (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

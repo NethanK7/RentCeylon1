@@ -54,6 +54,7 @@ class Booking extends Model
     public function cancellation(): HasOne { return $this->hasOne(Cancellation::class); }
     public function rentalAgreement(): HasOne { return $this->hasOne(RentalAgreement::class); }
     public function dispute(): HasOne { return $this->hasOne(Dispute::class); }
+    public function disputes(): HasMany { return $this->hasMany(Dispute::class); }
     public function reviews(): HasMany { return $this->hasMany(Review::class); }
 
     /** Condition-photo hard gate helpers (Constraint 02). */
